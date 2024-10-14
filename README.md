@@ -71,6 +71,7 @@ If you're a developer interested in contributing, please follow these steps:
    VITE_API_KEY=
    VITE_API_URL=
    ```
+    ###### If you don't have a project in supabase, put anything as key, it is necessary to work.
 
 9. **Run the application**:
    ```bash
