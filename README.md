@@ -1,4 +1,4 @@
-![APP Screenshot](https://i.imgur.com/RSFLuaL.png)
+[![APP Screenshot](https://i.imgur.com/RSFLuaL.png)](https://applio.org/products/app)
 <p align="center">
   The easiest voice cloning tool, now in app. Made to be simple, fast and light.
 </p>
