@@ -62,6 +62,7 @@ function App() {
 }
 
   const checkUpdates = async () => {
+    if (window.location.pathname === "/") {
       const eventSource = new EventSource('http://localhost:5123/check-update');
       eventSource.onmessage = (event) => {
         console.log(event.data);
@@ -76,6 +77,7 @@ function App() {
       return () => {
         eventSource.close(); 
     };
+  }
 }
 
   return (
@@ -112,6 +114,7 @@ function App() {
         <Route path="/first-time" element={<FirstTime />} />
         <Route path="/models" element={<Models />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/convert" element={<Convert />} />
       </Routes>
       </div>
     </Router>
@@ -199,7 +202,7 @@ function Models() {
         setLoading(false);
         return;
       }
-      const { data, error } = await supabase.from('models').select('*').ilike('name', `%${value}%`).limit(12);
+      const { data, error } = await supabase.from('models').select('*').ilike('name', `%${value}%`).order("created_at", { ascending: false }).limit(12);
       if (error) {
         console.log(error);
         setData(null);
@@ -217,13 +220,13 @@ function Models() {
     getModels();
   }, [value]);
 
-  const downloadModel = async (_id: string, link: string) => {
+  const downloadModel = async (id: string, link: string) => {
     setDropdownOpen(true)
     setInfo('Starting...');
     setStatus('Sending request...');
     setError(false)
     try {
-      const eventSource = new EventSource(`http://localhost:5123/download?link=${encodeURIComponent(link)}`)
+      const eventSource = new EventSource(`http://localhost:5123/download?link=${encodeURIComponent(link)}&id=${encodeURIComponent(id)}`)
 
       eventSource.onmessage = (event) => {
         console.log(event.data)
@@ -339,6 +342,63 @@ function Settings() {
           </div>
         </div>
       </main>
+    </div>
+  )
+}
+
+function Convert()  {
+  return (
+    <div className="grid h-screen w-screen">
+      <main className="flex flex-col items-end justify-center mt-8 w-full overflow-auto">
+        <div className="flex gap-4 w-full h-full p-4 pb-4">
+          <div className="col-span-3 row-span-2 rounded-xl w-full h-full">
+            <div className="flex gap-2 w-full h-full rounded-xl">  
+              <div className="flex flex-col gap-2 w-fit h-full">
+              <div className="relative border border-white/20 rounded-xl  min-h-[60svh] w-full h-full">
+              <div className="absolute w-full h-full rounded-xl backdrop-blur-3xl backdrop-filter noise opacity-40" style={{ background: 'linear-gradient(#111111A3 10%, #00AA68)', zIndex: -1 }} />
+                <div className="w-full h-full flex flex-col py-2">
+                <p className="text-center text-neutral-300 mt-2">No model selected</p>
+                <div className="w-full h-full p-4 gap-2">
+                  <div className="flex justify-between items-center my-auto h-full">
+                  <button type="button" className="bg-white/10 border border-white/10 p-2 rounded-full z-50">
+                  <svg className="w-6 h-6 opacity-60 hover:opacity-80 slow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"aria-hidden="true">
+                    <g id="SVGRepo_bgCarrier" strokeWidth="0" />
+                    <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round" />
+                    <g id="SVGRepo_iconCarrier">
+                      <path fillRule="evenodd" clipRule="evenodd" d="M15.7071 4.29289C16.0976 4.68342 16.0976 5.31658 15.7071 5.70711L9.41421 12L15.7071 18.2929C16.0976 18.6834 16.0976 19.3166 15.7071 19.7071C15.3166 20.0976 14.6834 20.0976 14.2929 19.7071L7.29289 12.7071C7.10536 12.5196 7 12.2652 7 12C7 11.7348 7.10536 11.4804 7.29289 11.2929L14.2929 4.29289C14.6834 3.90237 15.3166 3.90237 15.7071 4.29289Z" fill="#ffffff" />
+                    </g>
+                  </svg>
+                  </button>
+                  <button type="button" className="bg-white/10 border border-white/10 p-2 rounded-full z-50">
+                  <svg className="w-6 h-6 opacity-60 hover:opacity-80 slow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <g id="SVGRepo_bgCarrier" strokeWidth="0" />
+                    <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round" />
+                    <g id="SVGRepo_iconCarrier">
+                      <path fillRule="evenodd" clipRule="evenodd" d="M8.29289 4.29289C8.68342 3.90237 9.31658 3.90237 9.70711 4.29289L16.7071 11.2929C17.0976 11.6834 17.0976 12.3166 16.7071 12.7071L9.70711 19.7071C9.31658 20.0976 8.68342 20.0976 8.29289 19.7071C7.90237 19.3166 7.90237 18.6834 8.29289 18.2929L14.5858 12L8.29289 5.70711C7.90237 5.31658 7.90237 4.68342 8.29289 4.29289Z" fill="#ffffff" />
+                    </g>
+                  </svg>
+                  </button>
+                  </div>
+                  </div>
+                  <p className="text-center text-neutral-300 text-xs">Download more models <a href="/models" className="text-white hover:underline">here</a>.</p> 
+                </div>
+              </div>
+              <div className="relative border border-white/20 h-full rounded-xl w-[40svh] p-4 bg-[#111111]/10 flex flex-col gap-2 justify-center items-center">
+              <div className="absolute w-full h-full rounded-xl backdrop-blur-3xl backdrop-filter noise opacity-40" style={{ background: 'linear-gradient(#111111A3 100%, #00AA68)' }} />
+              <svg className="w-16 h-16 opacity-80 z-50" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g id="SVGRepo_bgCarrier" strokeWidth="0"/><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"/><g id="SVGRepo_iconCarrier"> <path d="M22 20.8201C15.426 22.392 8.574 22.392 2 20.8201" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/> <path d="M12.0508 16V2" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /><path d="M7.09961 6.21997L10.6096 2.60986C10.7895 2.42449 11.0048 2.27715 11.2427 2.17651C11.4806 2.07588 11.7363 2.02417 11.9946 2.02417C12.2529 2.02417 12.5086 2.07588 12.7465 2.17651C12.9844 2.27715 13.1997 2.42449 13.3796 2.60986L16.8996 6.21997" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/> </g></svg>
+              <p className="text-sm text-neutral-300 z-50">Upload audio.</p>
+              </div>
+              </div>
+              <div className="w-full h-full flex flex-col gap-2">
+              <div className="w-full h-full border border-white/20 rounded-xl">
+
+              </div>
+              <button className="w-full bg-white text-black rounded-xl px-4 py-2 hover:bg-white/80 slow">Convert</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        </main>
     </div>
   )
 }
