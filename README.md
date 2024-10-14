@@ -73,7 +73,7 @@ If you're a developer interested in contributing, please follow these steps:
 - To use tauri in developer mode you need to [meet the requirements listed on their website](https://tauri.app/start/prerequisites/).
 
 ## License
-This project is subject to [CC BY-NC license](https://github.com/bygimenez/applio-app/blob/main/LICENSE)
+This project is subject to [CC BY-NC license](https://github.com/bygimenez/applio-app/blob/master/LICENSE)
 
 ### Made possible by
 - [rvc-cli](https://github.com/blaisewf/rvc-cli) by [blaisewf](https://github.com/blaisewf)
