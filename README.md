@@ -7,8 +7,10 @@
 - [x] Simple integrated installation
 - [x] Integrated Applio models
 - [x] Auto-Update
+- [x] Discord Presence
 - [ ] Conversion
 - [ ] Train
+- [ ] i18n translations
 
 ## Supported systems
 | System      | Support Status                          |
