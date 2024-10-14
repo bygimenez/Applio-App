@@ -10,7 +10,7 @@
 - [x] Discord Presence
 - [ ] Conversion
 - [ ] Train
-- [ ] i18n translations
+- [ ] Translations
 
 ## Supported systems
 | System      | Support Status                          |
