@@ -3,6 +3,21 @@
   The easiest voice cloning tool, now in app. Made to be simple, fast and light.
 </p>
 
+## Features
+- [x] Simple integrated installation
+- [x] Integrated Applio models
+- [x] Auto-Update
+- [ ] Conversion
+- [ ] Train
+
+## Supported systems
+| System      | Support Status                          |
+|-------------|-----------------------------------------|
+| Windows 11  | Full support                            |
+| Windows 10  | Partial support                         |
+| macOS       | No support, working to make it possible. |
+| Linux       | No support, working to make it possible. |
+
 ## Contributing to the Project
 
 If you're a developer interested in contributing, please follow these steps:
@@ -56,3 +71,7 @@ If you're a developer interested in contributing, please follow these steps:
 ### Additional Notes
 - Ensure you have [pnpm](https://pnpm.js.org/) and [Python](https://www.python.org/downloads/) installed on your system before you begin.
 - To use tauri in developer mode you need to [meet the requirements listed on their website](https://tauri.app/start/prerequisites/).
+
+## Made possible by:
+- [rvc-cli](https://github.com/blaisewf/rvc-cli) by [blaisewf](https://github.com/blaisewf)
+- [Tauri](https://github.com/tauri-apps/tauri) by [Tauri team](https://github.com/tauri-apps)
