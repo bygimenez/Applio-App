@@ -63,7 +63,14 @@ If you're a developer interested in contributing, please follow these steps:
    cd ..
    ```
 
-8. **Run the application**:
+8. **Add .env file**:
+   Add your supabase keys
+   ```bash
+   VITE_API_KEY=
+   VITE_API_URL=
+   ```
+
+9. **Run the application**:
    ```bash
    pnpm tauri dev
    ```

@@ -62,7 +62,7 @@ function App() {
       }
       return () => {
         eventSource.close(); 
-      };
+    };
 }
 
   return (
@@ -191,7 +191,7 @@ function Models() {
         console.log(error);
         setData(null);
       } 
-      if (data?.length > 0) {
+      if (data && data.length > 0) {
         console.log(data);
         setData(data);
         setLoading(false);
@@ -204,7 +204,7 @@ function Models() {
     getModels();
   }, [value]);
 
-  const downloadModel = async (id: string, link: string) => {
+  const downloadModel = async (_id: string, link: string) => {
     setDropdownOpen(true)
     setInfo('Starting...');
     setStatus('Sending request...');
