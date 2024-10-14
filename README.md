@@ -72,6 +72,9 @@ If you're a developer interested in contributing, please follow these steps:
 - Ensure you have [pnpm](https://pnpm.js.org/) and [Python](https://www.python.org/downloads/) installed on your system before you begin.
 - To use tauri in developer mode you need to [meet the requirements listed on their website](https://tauri.app/start/prerequisites/).
 
-## Made possible by:
+## License
+This project is subject to [CC BY-NC license](https://github.com/bygimenez/applio-app/blob/main/LICENSE)
+
+### Made possible by
 - [rvc-cli](https://github.com/blaisewf/rvc-cli) by [blaisewf](https://github.com/blaisewf)
 - [Tauri](https://github.com/tauri-apps/tauri) by [Tauri team](https://github.com/tauri-apps)
