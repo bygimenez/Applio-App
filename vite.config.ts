@@ -11,6 +11,9 @@ export default defineConfig({
     // if the host Tauri is expecting is set, use it
     host: host || false,
     port: 1420,
+    watch: {
+      ignored: ["**/src-tauri/**", "**/python/**"]
+    }
   },
   // to access the Tauri environment variables set by the CLI with information about the current target
   envPrefix: ['VITE_', 'TAURI_ENV_*'],

@@ -9,6 +9,7 @@ import { TitleBar } from "./components/layout/titlebar";
 import Welcome from "./components/first-time/welcome";
 import PreInstall from "./components/first-time/pre-install";
 import { supabase } from "./utils/database";
+import { invoke } from "@tauri-apps/api/core";
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -33,7 +34,19 @@ function App() {
     checkFirstRun();
     checkUpdates();
     setWindowEffect();
+    initializeDiscordRpc();
   }, []);
+
+  const initializeDiscordRpc = async () => {
+      try {
+        await invoke("set_discord_presence", {
+          state: "on app.",
+          details: "Using the easiest voice cloning tool, now in app."
+        });
+      } catch (error) {
+        console.error("Error al inicializar Discord RPC:", error);
+      }
+  };
 
   const checkFirstRun = async () => {
     const isFirstTime = await isFirstRun(); 

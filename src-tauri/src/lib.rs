@@ -1,7 +1,9 @@
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 
-use std::process::{Command, Child};
 use std::sync::{Arc, Mutex};
+use std::{process::{Command, Child}};
+use declarative_discord_rich_presence::{activity, DeclarativeDiscordIpcClient};
+use declarative_discord_rich_presence::activity::Activity;
 
 fn start_server() -> Child {
     let current_dir = std::env::current_dir().unwrap();
@@ -25,6 +27,23 @@ fn start_server() -> Child {
 
     println!("Initializing server...");
     child
+}
+
+#[tauri::command]
+fn set_discord_presence(state: &str, details: &str) {
+    let client = DeclarativeDiscordIpcClient::new("1182749528059813908");
+
+    client.enable();
+
+    let _ = client.set_activity(Activity::new()
+        .state(state)
+        .details(details)
+        .assets(
+            activity::Assets::new()
+                .large_image("logo")
+                .large_text("Applio App"),
+        ),
+    );
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -54,6 +73,7 @@ pub fn run() {
         })
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_store::Builder::new().build())
+        .invoke_handler(tauri::generate_handler![set_discord_presence])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
