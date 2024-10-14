@@ -12,10 +12,10 @@ Go to the server folder
 `cd python`
 
 Start environment
-`python -m venv env`
+`py -m venv env`
 
 Activate environment
-`source env/bin/activate`
+`./env/scripts/activate`
 
 Install the dependencies
 `pip install -r requirements.txt`
@@ -24,4 +24,4 @@ Return to the root folder
 `cd ..`
 
 Run the app
-`pnpm dev`
+`pnpm tauri dev`
