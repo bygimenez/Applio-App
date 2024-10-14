@@ -1,4 +1,4 @@
-![APP Screenshot](https://i.imgur.com/RSFLuaL.png)
+[![APP Screenshot](https://i.imgur.com/RSFLuaL.png)](https://applio.org/products/app)
 <p align="center">
   The easiest voice cloning tool, now in app. Made to be simple, fast and light.
 </p>
@@ -7,8 +7,10 @@
 - [x] Simple integrated installation
 - [x] Integrated Applio models
 - [x] Auto-Update
+- [x] Discord Presence
 - [ ] Conversion
 - [ ] Train
+- [ ] Translations
 
 ## Supported systems
 | System      | Support Status                          |
@@ -69,6 +71,7 @@ If you're a developer interested in contributing, please follow these steps:
    VITE_API_KEY=
    VITE_API_URL=
    ```
+    ###### If you don't have a project in supabase, put anything as key, it is necessary to work.
 
 9. **Run the application**:
    ```bash
