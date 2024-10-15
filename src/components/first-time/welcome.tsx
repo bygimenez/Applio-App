@@ -1,5 +1,3 @@
-"use client"
-
 import Background0 from "../svg/background0";
 
 

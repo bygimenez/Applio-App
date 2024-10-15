@@ -220,13 +220,13 @@ function Models() {
     getModels();
   }, [value]);
 
-  const downloadModel = async (id: string, link: string) => {
+  const downloadModel = async (id: string, link: string, epochs: string, algorithm: string, name: string) => {
     setDropdownOpen(true)
     setInfo('Starting...');
     setStatus('Sending request...');
     setError(false)
     try {
-      const eventSource = new EventSource(`http://localhost:5123/download?link=${encodeURIComponent(link)}&id=${encodeURIComponent(id)}`)
+      const eventSource = new EventSource(`http://localhost:5123/download?link=${encodeURIComponent(link)}&id=${encodeURIComponent(id)}&epochs=${encodeURIComponent(epochs)}&algorithm=${encodeURIComponent(algorithm)}&name=${encodeURIComponent(name)}`)
 
       eventSource.onmessage = (event) => {
         console.log(event.data)
@@ -270,12 +270,12 @@ function Models() {
       {dropdownOpen && ( 
         <div className="absolute inset-0 bg-[#111111]/80 backdrop-blur-2xl backdrop-filter w-full h-full">
           <div className="w-full h-full flex justify-center items-center">
-            <div className="w-full max-w-2xl h-fit min-h-[15svh] border border-white/20 bg-[#111111] shadow rounded-xl p-4">
+            <div className="w-full max-w-2xl h-fit min-h-[18svh] border border-white/20 bg-[#111111] shadow rounded-xl p-4">
             <h1 className="font-medium text-2xl">Downloading model</h1>
             <div className="w-full flex rounded-full h-2.5 dark:bg-gray-700 mt-4">
               <div className="bg-green-500 h-2.5 rounded-full" style={{width: info === 'Starting...' ? '20%' : info === 'Downloading' ? '50%' : info === 'Downloaded' || info === 'Error' ? '100%' : '0%'}} />
             </div>
-            {!error && (<p className="text-xs text-neutral-400 pl-0.5 mt-1">{status}</p>)}
+            {!error && (<p className="text-xs text-neutral-400 mt-2">Status: {status}</p>)}
             {error && (<div className="px-4 py-2 my-4 text-sm rounded-xl bg-red-500/20 border border-white/10 text-neutral-300">{status}</div>)}
             {(info === 'Downloaded' || error) && (<button type="button" className="flex justify-end ml-auto px-6 py-1.5 bg-white text-black rounded-xl text-sm" onClick={() => setDropdownOpen(false)}>Close</button>)}
             </div>
@@ -303,7 +303,7 @@ function Models() {
         <div className="grid grid-cols-3 gap-2 w-full">
           {data.map((item: any) => (
             <button
-              onClick={() => downloadModel(item.id, item.link)}
+              onClick={() => downloadModel(item.id, item.link, item.epochs, item.algorithm, item.name)}
               type="button"
               className="w-full h-full min-h-[20svh] text-left rounded-xl border-white/20 border focus:outline-none bg-[#111111]/50 p-4 hover:shadow-xl hover:shadow-white/20 slow flex flex-col items-start justify-start"
               key={item.id}
@@ -347,53 +347,238 @@ function Settings() {
 }
 
 function Convert()  {
+  const [models, setModels] = useState<any[]>([])
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [file, setFile] = useState<File | null>(null);
+  const [uploaded, setUploaded] = useState(false)
+  const [info, setInfo] = useState("")
+  const [status, setStatus] = useState("")
+  const [error, setError] = useState(false)
+  const [input, setInput] = useState("")
+  const [pth, setPth] = useState("")
+  const [index, setIndex] = useState("")
+  
+  useEffect(() => {
+    async function getLocalModels() {
+      try {
+        const response = await fetch('http://localhost:5123/get-models');
+        if (response.ok) { 
+          const models = await response.json();
+          console.log(models)
+          setModels(models); 
+        } else {
+          console.error('Error fetching models:', response.statusText);
+        }
+      } catch (error) {
+        console.error('Fetch error:', error);
+      }
+    }
+  
+    getLocalModels();
+  }, []);
+  
+
+  const nextModel = () => {
+    if (currentIndex < models.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+      setPth(currentModel.model_pth_file);
+      setIndex(currentModel.model_index_file)
+    }
+  };
+
+  const prevModel = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+      setPth(currentModel.model_pth_file);
+      setIndex(currentModel.model_index_file)
+    }
+  };
+
+  const currentModel = models[currentIndex];
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('audio', file);
+
+    try {
+      const response = await fetch('http://localhost:5123/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Error uploading file');
+      }
+
+      const data = await response.json();
+      console.log(data);
+      setUploaded(true)
+      setInput(data[0].file_path)
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const convert = async () => {
+    setInfo('Starting...');
+    setStatus('Sending request...');
+    setError(false)
+    try {
+      const eventSource = new EventSource(`http://localhost:5123/convert?input=${encodeURIComponent(input)}&pth=${encodeURIComponent(pth)}&index=${encodeURIComponent(index)}`);
+
+      eventSource.onmessage = (event) => {
+        console.log(event.data)
+        setStatus(event.data)
+        if (event.data.includes('error')) {
+          setInfo('Error');
+          setStatus('Error downloading model, please try again.');
+          setError(true)
+          eventSource.close();
+        } 
+      };
+  
+      eventSource.onerror = (err) => {
+        console.log(info);
+        console.error('Error with event source:', err);
+        eventSource.close(); 
+        setError(true)
+        setStatus('We detected an error, please try again.');
+      };
+
+      return () => {
+        eventSource.close(); 
+      };
+    } catch (error) {
+      console.error('Error:', error);
+      setStatus('We detected an error. Please try again later.');
+    }
+    
+  }
+
   return (
     <div className="grid h-screen w-screen">
       <main className="flex flex-col items-end justify-center mt-8 w-full overflow-auto">
         <div className="flex gap-4 w-full h-full p-4 pb-4">
           <div className="col-span-3 row-span-2 rounded-xl w-full h-full">
             <div className="flex gap-2 w-full h-full rounded-xl">  
-              <div className="flex flex-col gap-2 w-fit h-full">
-              <div className="relative border border-white/20 rounded-xl  min-h-[60svh] w-full h-full">
-              <div className="absolute w-full h-full rounded-xl backdrop-blur-3xl backdrop-filter noise opacity-40" style={{ background: 'linear-gradient(#111111A3 10%, #00AA68)', zIndex: -1 }} />
-                <div className="w-full h-full flex flex-col py-2">
-                <p className="text-center text-neutral-300 mt-2">No model selected</p>
-                <div className="w-full h-full p-4 gap-2">
-                  <div className="flex justify-between items-center my-auto h-full">
-                  <button type="button" className="bg-white/10 border border-white/10 p-2 rounded-full z-50">
-                  <svg className="w-6 h-6 opacity-60 hover:opacity-80 slow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"aria-hidden="true">
-                    <g id="SVGRepo_bgCarrier" strokeWidth="0" />
-                    <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round" />
-                    <g id="SVGRepo_iconCarrier">
-                      <path fillRule="evenodd" clipRule="evenodd" d="M15.7071 4.29289C16.0976 4.68342 16.0976 5.31658 15.7071 5.70711L9.41421 12L15.7071 18.2929C16.0976 18.6834 16.0976 19.3166 15.7071 19.7071C15.3166 20.0976 14.6834 20.0976 14.2929 19.7071L7.29289 12.7071C7.10536 12.5196 7 12.2652 7 12C7 11.7348 7.10536 11.4804 7.29289 11.2929L14.2929 4.29289C14.6834 3.90237 15.3166 3.90237 15.7071 4.29289Z" fill="#ffffff" />
-                    </g>
-                  </svg>
-                  </button>
-                  <button type="button" className="bg-white/10 border border-white/10 p-2 rounded-full z-50">
-                  <svg className="w-6 h-6 opacity-60 hover:opacity-80 slow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <g id="SVGRepo_bgCarrier" strokeWidth="0" />
-                    <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round" />
-                    <g id="SVGRepo_iconCarrier">
-                      <path fillRule="evenodd" clipRule="evenodd" d="M8.29289 4.29289C8.68342 3.90237 9.31658 3.90237 9.70711 4.29289L16.7071 11.2929C17.0976 11.6834 17.0976 12.3166 16.7071 12.7071L9.70711 19.7071C9.31658 20.0976 8.68342 20.0976 8.29289 19.7071C7.90237 19.3166 7.90237 18.6834 8.29289 18.2929L14.5858 12L8.29289 5.70711C7.90237 5.31658 7.90237 4.68342 8.29289 4.29289Z" fill="#ffffff" />
-                    </g>
-                  </svg>
-                  </button>
+              <div className="grid grid-cols-1 grid-rows-3 gap-2 w-full max-w-[40svh] h-full">
+              <div className="relative border border-white/20 rounded-xl row-span-2 w-full h-full">
+              <div
+                className="absolute w-full h-full rounded-xl backdrop-blur-3xl backdrop-filter noise opacity-40"
+                style={{ background: 'linear-gradient(#111111A3 10%, #00AA68)', zIndex: -1 }}
+              />
+              <div className="w-full h-full flex flex-col py-2">
+                <p className="text-center text-neutral-200 mt-2 text-xl max-w-xl">
+                  {currentModel ? currentModel.name : 'No model selected'}
+                </p>
+                <div className="w-full h-full gap-2">
+                  <div className="flex justify-between items-center my-auto h-full gap-2 p-4">
+                    <button
+                      type="button"
+                      className="bg-white/10 hover:bg-white/20 disabled:hover:bg-white/10 slow disabled:opacity-60 border border-white/10 p-2 rounded-full z-50"
+                      onClick={prevModel}
+                      disabled={currentIndex === 0}
+                    >
+                      <svg
+                        className="w-6 h-6 max-md:w-3 max-md:h-3 opacity-60"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          clipRule="evenodd"
+                          d="M15.7071 4.29289C16.0976 4.68342 16.0976 5.31658 15.7071 5.70711L9.41421 12L15.7071 18.2929C16.0976 18.6834 16.0976 19.3166 15.7071 19.7071C15.3166 20.0976 14.6834 20.0976 14.2929 19.7071L7.29289 12.7071C7.10536 12.5196 7 12.2652 7 12C7 11.7348 7.10536 11.4804 7.29289 11.2929L14.2929 4.29289C14.6834 3.90237 15.3166 3.90237 15.7071 4.29289Z"
+                          fill="#ffffff"
+                        />
+                      </svg>
+                    </button>
+                    {currentModel && (
+                    <ul className="noise rounded-xl gap-1 flex flex-col w-full">
+                    <li className="text-sm max-md:text-xs text-neutral-200 bg-black/40 border border-white/20 px-4 py-1 rounded-xl">{currentModel ? currentModel.epochs : 'Undefined'} epochs</li>
+                    <li className="text-sm max-md:text-xs text-neutral-200 bg-black/40 border border-white/20 px-4 py-1 rounded-xl">{currentModel ? currentModel.algorithm : 'Undefined algorithm'}</li>
+                    </ul>
+                    )}
+                    <button
+                      type="button"
+                      className="bg-white/10 hover:bg-white/20 disabled:hover:bg-white/10 disabled:opacity-60 slow border border-white/10 p-2 rounded-full z-50"
+                      onClick={nextModel}
+                      disabled={currentIndex === models.length - 1}
+                    >
+                      <svg
+                        className="w-6 h-6 max-md:w-3 max-md:h-3 opacity-60"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          clipRule="evenodd"
+                          d="M8.29289 4.29289C8.68342 3.90237 9.31658 3.90237 9.70711 4.29289L16.7071 11.2929C17.0976 11.6834 17.0976 12.3166 16.7071 12.7071L9.70711 19.7071C9.31658 20.0976 8.68342 20.0976 8.29289 19.7071C7.90237 19.3166 7.90237 18.6834 8.29289 18.2929L14.5858 12L8.29289 5.70711C7.90237 5.31658 7.90237 4.68342 8.29289 4.29289Z"
+                          fill="#ffffff"
+                        />
+                      </svg>
+                    </button>
                   </div>
-                  </div>
-                  <p className="text-center text-neutral-300 text-xs">Download more models <a href="/models" className="text-white hover:underline">here</a>.</p> 
                 </div>
+                <p className="text-center text-neutral-300 text-xs">
+                  Download more models{' '}
+                  <a href="/models" className="text-white hover:underline">
+                    here
+                  </a>.
+                </p>
               </div>
-              <div className="relative border border-white/20 h-full rounded-xl w-[40svh] p-4 bg-[#111111]/10 flex flex-col gap-2 justify-center items-center">
-              <div className="absolute w-full h-full rounded-xl backdrop-blur-3xl backdrop-filter noise opacity-40" style={{ background: 'linear-gradient(#111111A3 100%, #00AA68)' }} />
-              <svg className="w-16 h-16 opacity-80 z-50" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g id="SVGRepo_bgCarrier" strokeWidth="0"/><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"/><g id="SVGRepo_iconCarrier"> <path d="M22 20.8201C15.426 22.392 8.574 22.392 2 20.8201" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/> <path d="M12.0508 16V2" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /><path d="M7.09961 6.21997L10.6096 2.60986C10.7895 2.42449 11.0048 2.27715 11.2427 2.17651C11.4806 2.07588 11.7363 2.02417 11.9946 2.02417C12.2529 2.02417 12.5086 2.07588 12.7465 2.17651C12.9844 2.27715 13.1997 2.42449 13.3796 2.60986L16.8996 6.21997" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/> </g></svg>
-              <p className="text-sm text-neutral-300 z-50">Upload audio.</p>
+            </div>
+            <div className="relative border border-white/20 h-full w-full rounded-xl p-4 bg-[#111111]/10 enabled:hover:bg-[#111111]/50 disabled:hover:bg-[#111111]/10 slow flex flex-col gap-2 justify-center items-center">
+                <div className="absolute w-full h-full rounded-xl backdrop-blur-3xl backdrop-filter noise opacity-40" style={{ background: 'linear-gradient(#111111A3 100%, #00AA68)' }} />
+                {uploaded ? (
+                <svg className="w-16 h-16 opacity-60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <g id="SVGRepo_bgCarrier" strokeWidth="0" />
+                <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round" />
+                <g id="SVGRepo_iconCarrier">
+                  <g id="Interface / Check">
+                    <path id="Vector" d="M6 12L10.2426 16.2426L18.727 7.75732" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </g>
+                </g>
+              </svg>
+                ) : (
+                  <svg className="w-16 h-16 opacity-80 z-50" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <g id="SVGRepo_bgCarrier" strokeWidth="0"/>
+                  <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"/>
+                  <g id="SVGRepo_iconCarrier">
+                    <path d="M22 20.8201C15.426 22.392 8.574 22.392 2 20.8201" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M12.0508 16V2" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M7.09961 6.21997L10.6096 2.60986C10.7895 2.42449 11.0048 2.27715 11.2427 2.17651C11.4806 2.07588 11.7363 2.02417 11.9946 2.02417C12.2529 2.02417 12.5086 2.07588 12.7465 2.17651C12.9844 2.27715 13.1997 2.42449 13.3796 2.60986L16.8996 6.21997" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </g>
+                </svg>
+                )}
+                <p className="text-sm text-neutral-300 z-50 truncate max-w-3xl">{file ? file.name : 'Select your audio.'}</p>
+                <input
+                  disabled={uploaded}
+                  type="file"
+                  accept="audio/*"
+                  className="absolute inset-0 opacity-0 z-40 enabled:cursor-pointer"
+                  onChange={handleFileChange}
+                />
               </div>
+              <button type="button" onClick={handleUpload} disabled={uploaded} className="w-full border border-white/20 rounded-xl py-2 h-full enabled:hover:bg-[#111111]/20 slow disabled:opacity-50">Upload</button>
               </div>
-              <div className="w-full h-full flex flex-col gap-2">
-              <div className="w-full h-full border border-white/20 rounded-xl">
-
+              <div className="w-full h-full grid grid-cols-1 grid-rows-12 gap-2">
+              <div className="row-span-11 w-full h-full border border-white/20 rounded-xl">
+                <p className="p-2">here go the conversion settings</p>
               </div>
-              <button className="w-full bg-white text-black rounded-xl px-4 py-2 hover:bg-white/80 slow">Convert</button>
+              <button className="w-full bg-white text-black rounded-xl h-full hover:bg-white/80 slow" type="button" onClick={convert}>Convert</button>
               </div>
             </div>
           </div>

@@ -1,5 +1,3 @@
-"use client"
-
 import { useState } from "react";
 import { getCurrentWindow as getCurrent } from "@tauri-apps/api/window";
 

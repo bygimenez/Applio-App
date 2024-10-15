@@ -12,7 +12,7 @@ export default defineConfig({
     host: host || false,
     port: 1420,
     watch: {
-      ignored: ["**/src-tauri/**", "**/python/**"]
+      ignored: ["**/python/**"]
     }
   },
   // to access the Tauri environment variables set by the CLI with information about the current target
