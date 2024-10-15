@@ -1,6 +1,6 @@
 import "./App.css";
 import { useEffect, useState } from "react";
-import { platform } from "@tauri-apps/plugin-os";
+import { platform, version } from "@tauri-apps/plugin-os";
 import { Effect, getCurrentWindow } from "@tauri-apps/api/window";
 import { isFirstRun, setNotFirstRun } from "./scripts/isFirstTime";
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
@@ -19,11 +19,14 @@ function App() {
   useEffect(() => {
     async function setWindowEffect() {
       const currentPlatform = await platform();
+      const osVersion = await version();
       if (currentPlatform === "windows") {
+        if (osVersion >= "10.0.22000.0") {
         document.documentElement.style.background = 'transparent';
         document.documentElement.style.backgroundColor = 'rgba(17, 17, 17, 0.7)';
         await getCurrentWindow().setEffects({effects: [Effect.Acrylic]});
         setLoading(false);
+        }
       } else {
         document.documentElement.style.background = '#111111';
         setLoading(false);
@@ -334,6 +337,7 @@ function Settings() {
   const [appVersion, setAppVersion] = useState("");
   const [tauriVersion, setTauriVersion] = useState("");
   const [system, setSystem] = useState("")
+  const [systemVersion, setSystemVersion] = useState("")
 
   const handleTestBackend = async () => {
     try {
@@ -370,10 +374,12 @@ function Settings() {
       const appversion = await getVersion();
       const tauriversion = await getTauriVersion();
       const platformName = platform();
+      const osVersion = await version();
 
       setAppVersion(appversion);
       setTauriVersion(tauriversion);
       setSystem(platformName)
+      setSystemVersion(osVersion)
     }
 
     checkVersion();
@@ -396,7 +402,7 @@ function Settings() {
               <div className="flex justify-end items-end mt-auto ml-auto flex-col">
               <p className="text-neutral-400 text-xs">v{appVersion}</p>
               <p className="text-neutral-400 text-xs">tauri-{tauriVersion}</p>
-              <p className="text-neutral-400 text-xs">{system}</p>
+              <p className="text-neutral-400 text-xs">{system}-{systemVersion}</p>
               </div>
             </div>
           </div>
@@ -412,8 +418,8 @@ function Convert()  {
   const [file, setFile] = useState<File | null>(null);
   const [uploaded, setUploaded] = useState(false)
   const [info, setInfo] = useState("")
-  const [status, setStatus] = useState("")
-  const [error, setError] = useState(false)
+  const [_status, setStatus] = useState("")
+  const [_error, setError] = useState(false)
   const [input, setInput] = useState("")
   const [pth, setPth] = useState("")
   const [index, setIndex] = useState("")
