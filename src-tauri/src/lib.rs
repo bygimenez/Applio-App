@@ -7,13 +7,13 @@ use declarative_discord_rich_presence::activity::Activity;
 
 fn start_server() -> Child {
     let current_dir = std::env::current_dir().unwrap();
-    let project_root = current_dir.parent().unwrap(); 
-    let python_executable = project_root
+    println!("Project root: {:?}", current_dir);
+    let python_executable = current_dir
         .join("python")
         .join("env")
         .join("Scripts")
         .join("python.exe");
-    let python_script = project_root
+    let python_script = current_dir
         .join("python")
         .join("server.py");
 

@@ -598,7 +598,7 @@ function Convert()  {
                     </button>
                   </div>
                 </div>
-                <p className="text-center text-neutral-300 text-xs">
+                <p className="text-center text-neutral-300 text-xs z-50">
                   Download more models{' '}
                   <a href="/models" className="text-white hover:underline">
                     here
