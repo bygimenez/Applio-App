@@ -8,7 +8,7 @@
 - [x] Integrated Applio models
 - [x] Auto-Update
 - [x] Discord Presence
-- [ ] Conversion
+- [x] Conversion (roughly)
 - [ ] Train
 - [ ] Translations
 
