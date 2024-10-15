@@ -10,6 +10,7 @@ import Welcome from "./components/first-time/welcome";
 import PreInstall from "./components/first-time/pre-install";
 import { supabase } from "./utils/database";
 import { invoke } from "@tauri-apps/api/core";
+import { getTauriVersion, getVersion } from "@tauri-apps/api/app";
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -40,7 +41,7 @@ function App() {
   const initializeDiscordRpc = async () => {
       try {
         await invoke("set_discord_presence", {
-          state: "on app.",
+          state: "Creating awesome AI Audios.",
           details: "Using the easiest voice cloning tool, now in app."
         });
       } catch (error) {
@@ -330,6 +331,54 @@ function Models() {
 }
 
 function Settings() {
+  const [appVersion, setAppVersion] = useState("");
+  const [tauriVersion, setTauriVersion] = useState("");
+  const [system, setSystem] = useState("")
+
+  const handleTestBackend = async () => {
+    try {
+      const response = await fetch("http://localhost:5123/");
+      if (response.ok) {
+        alert("Backend is running!");
+      } else {
+        alert("Backend is not running!");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  const checkUpdates = async () => {
+      const eventSource = new EventSource('http://localhost:5123/check-update');
+      eventSource.onmessage = (event) => {
+        console.log(event.data);
+        if (event.data.includes('up to date')) {
+          alert('No update available')
+          eventSource.close();
+        } else {
+          alert('Update available')
+          eventSource.close();
+        }
+      }
+      return () => {
+        eventSource.close(); 
+    };
+}
+
+  useEffect(() => {
+    async function checkVersion() {
+      const appversion = await getVersion();
+      const tauriversion = await getTauriVersion();
+      const platformName = platform();
+
+      setAppVersion(appversion);
+      setTauriVersion(tauriversion);
+      setSystem(platformName)
+    }
+
+    checkVersion();
+  }, []);
+
   return (
     <div className="grid h-screen w-screen">
       <main className="flex flex-col items-end justify-end mt-8 w-full overflow-auto">
@@ -337,7 +386,18 @@ function Settings() {
           <div className="col-span-3 row-span-2 rounded-t-xl bg-[#111111]/20 w-full h-full border border-white/20 ">
             <div className="flex flex-col w-full h-full rounded-xl justify-start items-start p-4">  
               <h1 className="text-xl font-bold title">Settings</h1>
-              <a href="/first-time" type="button" className="px-2 rounded-xl border border-white/10 my-4">re-install</a>
+              <h2 className="text-lg font-medium mt-4">Developer</h2>
+              <div className="w-full h-0.5 rounded-xl bg-white/20 mt-2 mb-4"/>
+              <div className="flex gap-2">
+              <a href="/first-time" type="button" className="px-3 hover:bg-white/20 slow rounded-lg border border-white/10 bg-white/10 py-1 text-sm">Install RVC</a>
+              <button onClick={handleTestBackend} type="button" className="px-3 hover:bg-white/20 slow rounded-lg border border-white/10 bg-white/10 py-1 text-sm">Test backend</button>
+              <button onClick={checkUpdates} type="button" className="px-3 hover:bg-white/20 slow rounded-lg border border-white/10 bg-white/10 py-1 text-sm">Check updates</button>
+              </div>
+              <div className="flex justify-end items-end mt-auto ml-auto flex-col">
+              <p className="text-neutral-400 text-xs">v{appVersion}</p>
+              <p className="text-neutral-400 text-xs">tauri-{tauriVersion}</p>
+              <p className="text-neutral-400 text-xs">{system}</p>
+              </div>
             </div>
           </div>
         </div>
