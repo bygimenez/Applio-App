@@ -18,6 +18,18 @@ function App() {
   const [updateAvailable, setUpdateAvailable] = useState(false);
 
   useEffect(() => {
+    const handleContextMenu = (event: MouseEvent) => {
+      event.preventDefault();
+    };
+
+    document.addEventListener('contextmenu', handleContextMenu);
+
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu);
+    };
+  }, []);
+
+  useEffect(() => {
     async function setWindowEffect() {
       const currentPlatform = await platform();
       const osVersion = await version();
@@ -49,7 +61,7 @@ function App() {
           details: "Using the easiest voice cloning tool, now in app."
         });
       } catch (error) {
-        console.error("Error al inicializar Discord RPC:", error);
+        console.error("Error starting discord presence:", error);
       }
   };
 
@@ -213,7 +225,7 @@ function Models() {
         setData(null);
       } 
       if (data && data.length > 0) {
-        console.log(data);
+        console.log('models', data);
         setData(data);
         setLoading(false);
       } else {
@@ -225,13 +237,13 @@ function Models() {
     getModels();
   }, [value]);
 
-  const downloadModel = async (id: string, link: string, epochs: string, algorithm: string, name: string) => {
+  const downloadModel = async (id: string, link: string, epochs: string, algorithm: string, name: string, author: string, from: string) => {
     setDropdownOpen(true)
     setInfo('Starting...');
     setStatus('Sending request...');
     setError(false)
     try {
-      const eventSource = new EventSource(`http://localhost:5123/download?link=${encodeURIComponent(link)}&id=${encodeURIComponent(id)}&epochs=${encodeURIComponent(epochs)}&algorithm=${encodeURIComponent(algorithm)}&name=${encodeURIComponent(name)}`)
+      const eventSource = new EventSource(`http://localhost:5123/download?link=${encodeURIComponent(link)}&id=${encodeURIComponent(id)}&epochs=${encodeURIComponent(epochs)}&algorithm=${encodeURIComponent(algorithm)}&name=${encodeURIComponent(name)}&author=${encodeURIComponent(author)}&from=${encodeURIComponent(from)}`)
 
       eventSource.onmessage = (event) => {
         console.log(event.data)
@@ -308,7 +320,7 @@ function Models() {
         <div className="grid grid-cols-3 gap-2 w-full">
           {data.map((item: any) => (
             <button
-              onClick={() => downloadModel(item.id, item.link, item.epochs, item.algorithm, item.name)}
+              onClick={() => downloadModel(item.id, item.link, item.epochs, item.algorithm, item.name, item.author_username, item.server_name)}
               type="button"
               className="w-full h-full min-h-[20svh] text-left rounded-xl border-white/20 border focus:outline-none bg-[#111111]/50 p-4 hover:shadow-xl hover:shadow-white/20 slow flex flex-col items-start justify-start"
               key={item.id}
@@ -425,6 +437,9 @@ function Convert()  {
   const [pth, setPth] = useState("")
   const [index, setIndex] = useState("")
   const [output, setOutput] = useState("")
+  const [pitch, setPitch] = useState(0)
+  const [indexRate, setIndexRate] = useState(0.3)
+  const [filterRadius, setFilterRadius] = useState(3)
   
   useEffect(() => {
     async function getLocalModels() {
@@ -504,8 +519,8 @@ function Convert()  {
     setStatus('Sending request...');
     setError(false)
     try {
-      const eventSource = new EventSource(`http://localhost:5123/convert?input=${encodeURIComponent(input)}&pth=${encodeURIComponent(pth)}&index=${encodeURIComponent(index)}`);
-      console.log(`http://localhost:5123/convert?input=${encodeURIComponent(input)}&pth=${encodeURIComponent(pth)}&index=${encodeURIComponent(index)}`)
+      const eventSource = new EventSource(`http://localhost:5123/convert?input=${encodeURIComponent(input)}&pth=${encodeURIComponent(pth)}&index=${encodeURIComponent(index)}&pitch=${encodeURIComponent(pitch)}&indexRate=${encodeURIComponent(indexRate)}&filterRadius=${encodeURIComponent(filterRadius)}`);
+      console.log(`http://localhost:5123/convert?input=${encodeURIComponent(input)}&pth=${encodeURIComponent(pth)}&index=${encodeURIComponent(index)}&pitch=${encodeURIComponent(pitch)}&indexRate=${encodeURIComponent(indexRate)}&filterRadius=${encodeURIComponent(filterRadius)}`)
       eventSource.onmessage = (event) => {
         console.log(event.data)
         setStatus(event.data)
@@ -580,7 +595,7 @@ function Convert()  {
                 style={{ background: 'linear-gradient(#111111A3 10%, #00AA68)', zIndex: -1 }}
               />
               <div className="w-full h-full flex flex-col py-2">
-                <p className="text-center text-neutral-200 mt-2 text-xl max-w-xl">
+                <p className="text-center text-neutral-200 mt-2 text-xl max-w-xl mx-4 truncate">
                   {currentModel ? currentModel.name : 'No model selected'}
                 </p>
                 <div className="w-full h-full gap-2">
@@ -607,9 +622,11 @@ function Convert()  {
                       </svg>
                     </button>
                     {currentModel && (
-                    <ul className="noise rounded-xl gap-1 flex flex-col w-full">
+                    <ul className="noise rounded-xl gap-1 flex flex-col w-full text-center mx-4">
                     <li className="text-sm max-md:text-xs text-neutral-200 bg-black/40 border border-white/20 px-4 py-1 rounded-xl">{currentModel ? currentModel.epochs : 'Undefined'} epochs</li>
                     <li className="text-sm max-md:text-xs text-neutral-200 bg-black/40 border border-white/20 px-4 py-1 rounded-xl">{currentModel ? currentModel.algorithm : 'Undefined algorithm'}</li>
+                    <li className="text-sm max-md:text-xs text-neutral-200 bg-black/40 border border-white/20 px-4 py-1 rounded-xl">{currentModel ? currentModel.author : 'Undefined author'}</li>
+                    <li className="text-sm max-md:text-xs text-neutral-200 bg-black/40 border border-white/20 px-4 py-1 rounded-xl">{currentModel ? currentModel.from : 'Undefined server'}</li>
                     </ul>
                     )}
                     <button
@@ -675,11 +692,34 @@ function Convert()  {
                   onChange={handleFileChange}
                 />
               </div>
-              <button type="button" onClick={handleUpload} disabled={uploaded} className="w-full border border-white/20 rounded-xl py-2 h-full enabled:hover:bg-[#111111]/20 slow disabled:opacity-50">Upload</button>
+              {file && <button type="button" onClick={handleUpload} disabled={uploaded} className="w-full border border-white/20 rounded-xl py-2 h-full enabled:hover:bg-[#111111]/20 slow disabled:opacity-50">Upload</button>}
               </div>
               <div className="w-full h-full grid grid-cols-1 grid-rows-12 gap-2">
-              <div className="row-span-full w-full h-full border border-white/20 rounded-xl">
-                <p className="p-2">here go the conversion settings</p>
+              <div className="row-span-full w-full h-full border border-white/20 rounded-xl p-4 flex flex-col gap-6">
+                  <div className="flex flex-col gap-2">
+                  <h2 className="text-neutral-200 text-lg">Pitch</h2>
+                  <div className="flex gap-2 justify-center items-center">
+                  <p className="text-sm text-neutral-200">{pitch}</p>
+                  <input value={pitch} onChange={(e) => setPitch(Number(e.target.value))} type="range" defaultValue='0' min='0' max='10' className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer accent-white" />
+                  </div>
+                  <p className="text-xs text-neutral-300">Set the pitch of the audio. Higher values result in a higher pitch.</p>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                  <h2 className="text-neutral-200 text-lg">Index Rate</h2>
+                  <div className="flex gap-2 justify-center items-center">
+                  <p className="text-sm text-neutral-200">{indexRate}</p>
+                  <input value={indexRate} onChange={(e) => setIndexRate(Number(e.target.value))} type="range" defaultValue='0.3' min='0' max='1' step='0.1' className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer accent-white" />
+                  </div>
+                  <p className="text-xs text-neutral-300">Control the influence of the index file on the output. Higher values mean stronger influence. Lower values can help reduce artifacts but may result in less accurate voice cloning.</p>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                  <h2 className="text-neutral-200 text-lg">Filter Radius</h2>
+                  <div className="flex gap-2 justify-center items-center">
+                  <p className="text-sm text-neutral-200">{filterRadius}</p>
+                  <input value={filterRadius} onChange={(e) => setFilterRadius(Number(e.target.value))} type="range" defaultValue='3' min='0' max='6' className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer accent-white" />
+                  </div>
+                  <p className="text-xs text-neutral-300">Apply median filtering to the extracted pitch values if this value is greater than or equal to three. This can help reduce breathiness in the output audio.</p>
+                  </div>
               </div>
               {(status || info) && (
                 <div className={`min-h-fit w-full h-full border border-white/20 rounded-xl p-4 ${error ? 'bg-red-500/10' : ''}`}>
@@ -698,7 +738,21 @@ function Convert()  {
                   />
                 </audio>
               )}
-              <button className="min-h-12 w-full bg-white disabled:opacity-60 text-black rounded-xl h-full enabled:hover:bg-white/80 slow" type="button" disabled={!!status} onClick={convert}>Convert</button>
+              <div className="relative group">
+                {!uploaded && (
+                  <p className="absolute left-0 right-0 bottom-full mb-4 text-xs text-red-400 text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    First upload your audio!
+                  </p>
+                )}
+                <button
+                  className="min-h-12 w-full bg-white disabled:opacity-60 text-black rounded-xl h-full enabled:hover:bg-white/80 slow"
+                  type="button"
+                  disabled={!!status || !uploaded}
+                  onClick={convert}
+                >
+                  Convert
+                </button>
+              </div>
               </div>
             </div>
           </div>

@@ -23,15 +23,16 @@ export default function PreInstall() {
             if (event.data.includes('Installing collected packages:')) {
                 setInfo('Please wait... this may take a while.');
             }
-            if (event.data.includes('RVC CLI has been installed successfully')) {
-                setInfo('Finishing installation, please wait...');
-                setStatus('Completed');
-                window.location.href = '/';
-            } 
             if (event.data.includes('RVC repository is up to date. No need to download.')) {
                 eventSource.close();
                 setStatus('You already have the latest version installed.');
                 setInfo('No updates available');
+            }
+            if (event.data.includes('RVC CLI has been installed successfully')) {
+                setInfo('Finishing...')
+                setStatus('Finishing RVC installation... please wait...');
+                downloadPretraineds();
+                eventSource.close();
             }
         };
     
@@ -47,6 +48,37 @@ export default function PreInstall() {
             eventSource.close(); 
         };
     }, []);
+
+    function downloadPretraineds() {
+        const eventSource = new EventSource('http://localhost:5123/download-pretraineds');
+    
+        eventSource.onmessage = (event) => {
+            console.log(event.data); 
+            setStatus(event.data);
+            if (event.data.includes('Downloading requirements...')) {
+                setInfo('Downloading requirements...');
+                setStatus('Downloading requirements... please wait...');
+            }
+            if (event.data.includes('Installation completed successfully.')) {
+                setInfo('Finishing installation, please wait...');
+                setStatus('Completed');
+                eventSource.close();
+                window.location.href = '/';
+            }
+        };
+    
+        eventSource.onerror = (err) => {
+            console.log(info);
+            console.error('Error with event source:', err);
+            eventSource.close(); 
+            setStatus('');
+            setInfo('We detected an error. Please try again later.');
+        };
+    
+        return () => {
+            eventSource.close(); 
+        };
+    }
     
     
 
