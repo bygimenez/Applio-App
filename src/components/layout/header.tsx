@@ -1,6 +1,6 @@
 export default function Header() {
     return (
-      <header className="max-w-[25svh] w-fit h-full bg-[#111111]/50 border-r border-white/10 z-[300]">
+      <header className="max-w-[25svh] w-fit h-full bg-[#111111]/50 border-r border-white/10 z-[200]">
           <div className="flex flex-col gap-4 justify-start items-end ml-auto p-4 h-full">
             <a className="text-xl flex gap-4 w-full ml-auto items-center justify-end" href="/">
               <span className="flex items-center justify-center m-auto h-12 w-12 rounded-xl border-white/20 border hover:bg-white/10 slow hover:shadow-xl hover:shadow-[#00AA68]/20">

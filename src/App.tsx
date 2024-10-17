@@ -9,7 +9,7 @@ import { TitleBar } from "./components/layout/titlebar";
 import Welcome from "./components/first-time/welcome";
 import PreInstall from "./components/first-time/pre-install";
 import { supabase } from "./utils/database";
-import { convertFileSrc, invoke } from "@tauri-apps/api/core";
+import { invoke } from "@tauri-apps/api/core";
 import { getTauriVersion, getVersion } from "@tauri-apps/api/app";
 import { open } from '@tauri-apps/plugin-shell'
 
