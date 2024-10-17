@@ -9,8 +9,9 @@ import { TitleBar } from "./components/layout/titlebar";
 import Welcome from "./components/first-time/welcome";
 import PreInstall from "./components/first-time/pre-install";
 import { supabase } from "./utils/database";
-import { invoke } from "@tauri-apps/api/core";
+import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { getTauriVersion, getVersion } from "@tauri-apps/api/app";
+import { open } from '@tauri-apps/plugin-shell'
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -418,11 +419,12 @@ function Convert()  {
   const [file, setFile] = useState<File | null>(null);
   const [uploaded, setUploaded] = useState(false)
   const [info, setInfo] = useState("")
-  const [_status, setStatus] = useState("")
-  const [_error, setError] = useState(false)
+  const [status, setStatus] = useState("")
+  const [error, setError] = useState(false)
   const [input, setInput] = useState("")
   const [pth, setPth] = useState("")
   const [index, setIndex] = useState("")
+  const [output, setOutput] = useState("")
   
   useEffect(() => {
     async function getLocalModels() {
@@ -430,7 +432,6 @@ function Convert()  {
         const response = await fetch('http://localhost:5123/get-models');
         if (response.ok) { 
           const models = await response.json();
-          console.log(models)
           setModels(models); 
         } else {
           console.error('Error fetching models:', response.statusText);
@@ -439,24 +440,28 @@ function Convert()  {
         console.error('Fetch error:', error);
       }
     }
-  
+    
     getLocalModels();
   }, []);
   
+  useEffect(() => {
+    if (models[currentIndex] && models[currentIndex].model_index_file) {
+      console.log('model_index_file:', models[currentIndex].model_index_file);
+      console.log('model_pth_file:', models[currentIndex].model_pth_file);
+      setIndex(models[currentIndex].model_index_file);
+      setPth(models[currentIndex].model_pth_file);
+    }
+  }, [models, currentIndex]);
 
   const nextModel = () => {
     if (currentIndex < models.length - 1) {
       setCurrentIndex(currentIndex + 1);
-      setPth(currentModel.model_pth_file);
-      setIndex(currentModel.model_index_file)
     }
   };
 
   const prevModel = () => {
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
-      setPth(currentModel.model_pth_file);
-      setIndex(currentModel.model_index_file)
     }
   };
 
@@ -500,16 +505,26 @@ function Convert()  {
     setError(false)
     try {
       const eventSource = new EventSource(`http://localhost:5123/convert?input=${encodeURIComponent(input)}&pth=${encodeURIComponent(pth)}&index=${encodeURIComponent(index)}`);
-
+      console.log(`http://localhost:5123/convert?input=${encodeURIComponent(input)}&pth=${encodeURIComponent(pth)}&index=${encodeURIComponent(index)}`)
       eventSource.onmessage = (event) => {
         console.log(event.data)
         setStatus(event.data)
         if (event.data.includes('error')) {
           setInfo('Error');
-          setStatus('Error downloading model, please try again.');
+          setStatus('An error has occurred, please try again.');
           setError(true)
           eventSource.close();
         } 
+
+        if (event.data.includes('finished')) {
+          const audioPath = event.data.split('Audio path: ')[1];
+          console.log(audioPath)
+          getAudio(audioPath)
+          setInfo('Conversion completed!');
+          setStatus('Your audio has been converted successfully.');
+          
+          eventSource.close();
+        }
       };
   
       eventSource.onerror = (err) => {
@@ -528,6 +543,28 @@ function Convert()  {
       setStatus('We detected an error. Please try again later.');
     }
     
+  }
+
+  const openDocs = async () => {
+    open('https://docs.applio.org')    
+  };
+
+  function transformPath(path: string) {
+    return path.replace(/\\/g, '/'); 
+  }
+
+  async function getAudio(path: string) {
+    const transformedPath = transformPath(path); 
+    try {
+      const response = await fetch(`http://localhost:5123/audio?path=${encodeURIComponent(transformedPath)}`);
+      if (!response.ok) {
+        throw new Error('Error getting audio');
+      }
+      const audioBlob = await response.blob();
+      setOutput(URL.createObjectURL(audioBlob));
+    } catch (error) {
+      console.error('Error:', error);
+    }
   }
 
   return (
@@ -641,10 +678,27 @@ function Convert()  {
               <button type="button" onClick={handleUpload} disabled={uploaded} className="w-full border border-white/20 rounded-xl py-2 h-full enabled:hover:bg-[#111111]/20 slow disabled:opacity-50">Upload</button>
               </div>
               <div className="w-full h-full grid grid-cols-1 grid-rows-12 gap-2">
-              <div className="row-span-11 w-full h-full border border-white/20 rounded-xl">
+              <div className="row-span-full w-full h-full border border-white/20 rounded-xl">
                 <p className="p-2">here go the conversion settings</p>
               </div>
-              <button className="w-full bg-white text-black rounded-xl h-full hover:bg-white/80 slow" type="button" onClick={convert}>Convert</button>
+              {(status || info) && (
+                <div className={`min-h-fit w-full h-full border border-white/20 rounded-xl p-4 ${error ? 'bg-red-500/10' : ''}`}>
+                  <p className="font-medium">{info}</p>
+                  <p className="text-sm text-neutral-300 max-w-5xl truncate">{status}</p>
+                  {error && <p className="text-neutral-400 text-xs mt-1">Maybe you have done something wrong? <button className="text-neutral-300 hover:underline" onClick={openDocs}>Check the docs</button>.</p>}
+                </div>
+              )}
+              {info === 'Conversion completed!' && output && (
+                <audio controls className="w-full">
+                  <source 
+                  id="audio-player"
+                  className="audio-player"
+                  src={output}
+                  type="audio/wav"
+                  />
+                </audio>
+              )}
+              <button className="min-h-12 w-full bg-white disabled:opacity-60 text-black rounded-xl h-full enabled:hover:bg-white/80 slow" type="button" disabled={!!status} onClick={convert}>Convert</button>
               </div>
             </div>
           </div>

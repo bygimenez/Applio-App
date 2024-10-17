@@ -8,6 +8,9 @@
 :root {
   background-color: #111111;
   color:  rgb(231 229 228);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
 }
 
 .title {

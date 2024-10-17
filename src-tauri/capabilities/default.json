@@ -14,6 +14,8 @@
     "core:window:allow-start-dragging",
     "core:window:allow-set-effects",
     "store:allow-get",
-    "store:allow-set"
+    "store:allow-set",
+    "shell:allow-open",
+    "shell:default"
   ]
 }
