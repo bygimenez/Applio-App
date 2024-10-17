@@ -55,11 +55,11 @@ export default function PreInstall() {
         eventSource.onmessage = (event) => {
             console.log(event.data); 
             setStatus(event.data);
-            if (event.data.includes('Downloading requirements...')) {
-                setInfo('Downloading requirements...');
-                setStatus('Downloading requirements... please wait...');
+            if (event.data.includes('Downloading pretraineds...')) {
+                setInfo('Downloading pretraineds...');
+                setStatus('Downloading pretraineds... please wait...');
             }
-            if (event.data.includes('Installation completed successfully.')) {
+            if (event.data.includes('Pretraineds installed')) {
                 setInfo('Finishing installation, please wait...');
                 setStatus('Completed');
                 eventSource.close();
