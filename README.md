@@ -26,7 +26,7 @@ If you're a developer interested in contributing, please follow these steps:
 
 1. **Clone the repository**:
    ```bash
-   git clone --recurse-submodules https://github.com/bygimenez/applio-app.git
+   git clone https://github.com/bygimenez/applio-app.git
    ```
    *If you only want to collaborate on the backend, [check the appropriate repository!](https://github.com/bygimenez/applio-app-backend)*
 
