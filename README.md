@@ -40,7 +40,6 @@ This TurboRepo setup includes two main apps:
 1. **Clone the repository**:
    ```bash
    git clone https://github.com/bygimenez/applio-app.git
-   cd apps/desktop
    ```
 
 2. **Install the dependencies for the desktop app**:
@@ -50,7 +49,7 @@ This TurboRepo setup includes two main apps:
 
 3. **Navigate to the server folder**:
    ```bash
-   cd ../server
+   cd apps/server
    ```
 
 4. **Set up the virtual environment**:
@@ -75,7 +74,7 @@ This TurboRepo setup includes two main apps:
 
 7. **Return to the root folder of the project**:
    ```bash
-   cd ..
+   cd ../..
    ```
 
 8. **Create a `.env` file**:
