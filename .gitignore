@@ -34,3 +34,6 @@ dist-ssr
 
 # python
 /src-tauri/python/server.exe
+
+# exes
+/compiled

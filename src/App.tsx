@@ -13,10 +13,12 @@ import { invoke } from "@tauri-apps/api/core";
 import { getTauriVersion, getVersion } from "@tauri-apps/api/app";
 import { open } from '@tauri-apps/plugin-shell'
 import Background1 from "./components/svg/background1";
+import { checkBackendUpdates } from "./components/updates/backendUpdate";
 
 function App() {
   const [loading, setLoading] = useState(true);
   const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [backendUpdateAvailable, setBackendUpdateAvailable] = useState(false);
 
   useEffect(() => {
     const handleContextMenu = (event: MouseEvent) => {
@@ -34,6 +36,7 @@ function App() {
     const handleCloseRequested = async (event: any) => {
       event.preventDefault(); 
         const response = await fetch('http://localhost:5123/stop');
+        localStorage.removeItem('appInitialized');
 
         if (!response.ok) {
           alert('Error, please report on GitHub');
@@ -53,6 +56,16 @@ function App() {
       unlisten.then(fn => fn());
     };
   }, [])
+
+  useEffect(() => {
+    const initialized = localStorage.getItem('appInitialized');
+
+    if (!initialized) {
+      localStorage.setItem('appInitialized', 'true');
+      checkBackendUpdates(setBackendUpdateAvailable);
+    }
+  }, []);
+
   useEffect(() => {
     async function setWindowEffect() {
       const currentPlatform = await platform();
@@ -126,6 +139,9 @@ function App() {
       {updateAvailable && window.location.pathname !== "/first-time" && (<a href="/first-time" className="hover:bg-black/20 slow absolute left-24 top-2 w-fit p-2 px-4 shadow-lg shadow-green-500/10 h-fit border border-white/20 rounded-xl" style={{zIndex: 300}}>
         <p className="text-xs">Update available!</p>
       </a>)}
+      {backendUpdateAvailable && window.location.pathname !== "/first-time" && (<a href="/update-backend" className="hover:bg-black/20 slow absolute left-24 top-2 w-fit p-2 px-4 shadow-lg shadow-green-500/10 h-fit border border-white/20 rounded-xl" style={{zIndex: 300}}>
+        <p className="text-xs">Update available!</p>
+      </a>)}
       <TitleBar />
       <div className="flex w-screen h-screen gap-0">
       {window.location.pathname !== "/first-time" && window.location.pathname !== "/pretraineds" && <Header />}
@@ -157,6 +173,7 @@ function App() {
         <Route path="/settings" element={<Settings />} />
         <Route path="/convert" element={<Convert />} />
         <Route path="/pretraineds" element={<DownloadPretraineds />} />
+        <Route path="/update-backend" element={<UpdateBackend />} />
       </Routes>
       </div>
     </Router>
@@ -837,6 +854,51 @@ function Convert()  {
         </div>
         </main>
     </div>
+  )
+}
+
+function UpdateBackend() {
+  const [status, setStatus] = useState("Starting...");
+  const [info, setInfo] = useState("Downloading...");
+
+    useEffect(() => {
+      const eventSource = new EventSource('http://localhost:5123/update-backend');
+
+      eventSource.onmessage = (event) => {
+          console.log(event.data); 
+          setStatus(event.data);
+      }
+
+      eventSource.onerror = (err) => {
+          console.log(info);
+          console.error('Error with event source:', err);
+          eventSource.close(); 
+          setStatus('');
+          setInfo('We detected an error. Please try again later.');
+      };
+
+      return () => {
+          eventSource.close(); 
+      };
+  }, []);
+
+  return (
+    <section className="absolute inset-0 z-50">
+    <div className="w-screen h-screen absolute inset-0 bg-[#111111] pointer-events-none">
+        <Background1/>
+    </div>
+    <div className="absolute inset-0 mt-auto flex z-50">
+    <div className="z-50 flex flex-col w-full justify-center items-center mx-auto">
+    <h1 className="font-bold text-4xl lg:text-5xl xl:text-6xl title">Updating...</h1>
+    <p className="text-white/80 text-sm mt-1 max-w-sm flex">We will upgrade the backend to the latest version available.</p>
+    <div className="flex flex-col justify-center items-center mx-auto w-full gap-2 my-4">
+    {status && (<span className="px-4 py-2 text-center w-full h-fit max-w-sm bg-[#111111]/20 backdrop-filter backdrop-blur-xl rounded-full border border-white/10 text-xs truncate shadow-2xl shadow-white/20">{status}</span>)}
+    {!info.includes('error') && (<span className="text-[10px] text-center text-neutral-300">{info}</span>)}
+    {info.includes('error') && (<span className="text-xs text-center px-4 py-1 rounded-xl bg-red-500/20 border border-white/10 text-white">{info}</span>)}
+    </div>
+    </div>
+    </div>
+</section>
   )
 }
 
