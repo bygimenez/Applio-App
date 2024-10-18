@@ -13,6 +13,7 @@
     "core:window:allow-unmaximize",
     "core:window:allow-start-dragging",
     "core:window:allow-set-effects",
+    "core:window:allow-destroy",
     "store:allow-get",
     "store:allow-set",
     "shell:allow-open",

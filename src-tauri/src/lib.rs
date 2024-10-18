@@ -4,27 +4,30 @@ use declarative_discord_rich_presence::activity::Activity;
 use declarative_discord_rich_presence::{activity, DeclarativeDiscordIpcClient};
 use std::process::{Child, Command};
 use std::sync::{Arc, Mutex};
+use std::path::PathBuf;
+use std::io;
 
-fn start_server() -> Child {
-    let current_dir = std::env::current_dir().unwrap();
-    println!("Project root: {:?}", current_dir);
-    let python_executable = current_dir
-        .join("python")
-        .join("env")
-        .join("Scripts")
-        .join("python.exe");
-    let python_script = current_dir.join("python").join("server.py");
+fn get_server_path() -> io::Result<PathBuf> {
+    let base_dir = std::env::current_dir()?;
+    println!("{:?}", base_dir);
+    Ok(if cfg!(dev) {
+        base_dir.join("python").join("server.exe")
+    } else {
+        base_dir.join("python").join("server.exe")
+    })
+}
 
-    println!("Python Executable: {:?}", python_executable);
-    println!("Python Script: {:?}", python_script);
+fn start_server() -> io::Result<Child> {
+    let server_path = get_server_path()?;
 
-    let child = Command::new(python_executable)
-        .arg(python_script)
-        .spawn()
-        .expect("Failed to start server");
+    println!("Project root: {:?}", server_path);
+
+    let child = Command::new(server_path)
+        .spawn() 
+        .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("Failed to start server: {}", e)))?;
 
     println!("Initializing server...");
-    child
+    Ok(child)
 }
 
 #[tauri::command]
@@ -51,23 +54,15 @@ pub fn run() {
         .setup({
             let flask_server = Arc::clone(&flask_server);
             move |_app| {
-                let server_process = start_server();
-                *flask_server.lock().unwrap() = Some(server_process);
-
-                Ok(())
-            }
-        })
-        .on_window_event({
-            let flask_server = Arc::clone(&flask_server);
-            move |_window, event| {
-                if let tauri::WindowEvent::CloseRequested { .. } = event {
-                    if let Some(mut server_process) = flask_server.lock().unwrap().take() {
-                        println!("Stopping server...");
-                        server_process
-                            .kill()
-                            .expect("failed to terminate Flask server");
+                match start_server() {
+                    Ok(server_process) => {
+                        *flask_server.lock().unwrap() = Some(server_process);
+                    }
+                    Err(e) => {
+                        eprintln!("Error starting server: {}", e);
                     }
                 }
+                Ok(())
             }
         })
         .plugin(tauri_plugin_os::init())

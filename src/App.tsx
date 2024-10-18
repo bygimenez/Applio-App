@@ -31,6 +31,29 @@ function App() {
   }, []);
 
   useEffect(() => {
+    const handleCloseRequested = async (event: any) => {
+      event.preventDefault(); 
+        const response = await fetch('http://localhost:5123/stop');
+
+        if (!response.ok) {
+          alert('Error, please report on GitHub');
+        } else {
+          console.log('Server shutting down...');
+          getCurrentWindow().destroy();
+        }
+    };
+
+    const currentWindow = getCurrentWindow();
+    
+    const unlisten = currentWindow.onCloseRequested((event) => {
+      handleCloseRequested(event);
+    });
+
+    return () => {
+      unlisten.then(fn => fn());
+    };
+  }, [])
+  useEffect(() => {
     async function setWindowEffect() {
       const currentPlatform = await platform();
       const osVersion = await version();
