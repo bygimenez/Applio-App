@@ -1,44 +1,56 @@
 [![APP Screenshot](https://i.imgur.com/RSFLuaL.png)](https://applio.org/products/app)
+
 <p align="center">
-  The easiest voice cloning tool, now in app. Made to be simple, fast and light.
+  The easiest voice cloning tool, now in app. Made to be simple, fast, and light.
 </p>
+
+## Project Overview
+
+This TurboRepo setup includes two main apps:
+1. **Desktop App** (Tauri-based) – A lightweight voice cloning tool with a sleek, intuitive UI.
+2. **Server** (Python-based) – Powers the backend, handles AI models, and provides essential APIs for the desktop app.
 
 ## Features
 - [x] Simple integrated installation
-- [x] Applio models
+- [x] Applio models support
 - [x] RVC Auto-Update
-- [x] Discord Presence
-- [x] Conversion
-- [ ] App Auto-Update
-- [ ] Train
-- [ ] Translations
+- [x] Discord Presence integration
+- [x] Conversion capabilities
+- [ ] App Auto-Update (coming soon)
+- [ ] Model Training (coming soon)
+- [ ] Translations (coming soon)
 
-## Supported systems
+## Supported Systems
 | System      | Support Status                          |
 |-------------|-----------------------------------------|
 | Windows 11  | Full support                            |
-| Windows 10  | Full support                        |
-| macOS       | No support, working to make it possible. |
-| Linux       | No support, working to make it possible. |
+| Windows 10  | Full support                            |
+| macOS       | No support, working to make it possible |
+| Linux       | No support, working to make it possible |
 
-## Contributing to the Project
+## Installation Instructions
 
-If you're a developer interested in contributing, please follow these steps:
+### Prerequisites
+- Install [pnpm](https://pnpm.js.org/)
+- Install [Python](https://www.python.org/downloads/) (required for the server)
+- Ensure you meet the [Tauri prerequisites](https://tauri.app/start/prerequisites/) for desktop development
+
+### Steps for Developers
 
 1. **Clone the repository**:
    ```bash
    git clone https://github.com/bygimenez/applio-app.git
-   cd apps/dekstop
+   cd apps/desktop
    ```
 
-2. **Install the dependencies**:
+2. **Install the dependencies for the desktop app**:
    ```bash
-   pnpm install --filter=dekstop
+   pnpm install --filter=desktop
    ```
 
 3. **Navigate to the server folder**:
    ```bash
-   cd python
+   cd ../server
    ```
 
 4. **Set up the virtual environment**:
@@ -66,26 +78,30 @@ If you're a developer interested in contributing, please follow these steps:
    cd ..
    ```
 
-8. **Add .env file**:
-   Add your supabase keys
+8. **Create a `.env` file**:
+   Add your Supabase keys for proper API integration:
    ```bash
-   VITE_API_KEY=
-   VITE_API_URL=
+   VITE_API_KEY=your_supabase_api_key
+   VITE_API_URL=your_supabase_url
    ```
-    ###### If you don't have a project in supabase, put anything as key, it is necessary to work.
+   If you're not using Supabase, you can input placeholder values.
 
-9. **Run the application**:
+9. **Run the desktop application**:
    ```bash
-   pnpm tauri dev --filter=dekstop
+   pnpm tauri dev --filter=desktop
    ```
 
-### Additional Notes
-- Ensure you have [pnpm](https://pnpm.js.org/) and [Python](https://www.python.org/downloads/) installed on your system before you begin.
-- To use tauri in developer mode you need to [meet the requirements listed on their website](https://tauri.app/start/prerequisites/).
+## Contributing
+
+We welcome contributions to enhance the app’s features and support for additional systems. Please follow the installation steps above and submit a pull request to our repository.
 
 ## License
-This project is subject to [CC BY-NC license](https://github.com/bygimenez/applio-app/blob/master/LICENSE)
 
-### Made possible by
+This project is licensed under the [CC BY-NC license](https://github.com/bygimenez/applio-app/blob/master/LICENSE).
+
+## Acknowledgements
+
 - [rvc-cli](https://github.com/blaisewf/rvc-cli) by [blaisewf](https://github.com/blaisewf)
 - [Tauri](https://github.com/tauri-apps/tauri) by [Tauri team](https://github.com/tauri-apps)
+
+Feel free to contribute or suggest features!
