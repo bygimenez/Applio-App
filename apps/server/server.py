@@ -403,53 +403,6 @@ def shutdown_server():
     print('Shutting down...')
     os.kill(os.getpid(), signal.SIGINT) 
 
-# get latest backend version
-def get_latest_exe_url():
-    model_id = "bygimenez/Applio-App"
-    url = f"https://huggingface.co/api/models/{model_id}"
-
-    response = requests.get(url)
-    model_info = response.json()
-
-    environment_files = [file['rfilename'] for file in model_info.get('siblings', []) if 'enviroment/' in file['rfilename']]
-
-    versions = []
-    for file in environment_files:
-        match = re.search(r'v([\d\.]+(-[a-zA-Z0-9]+)?)', file)
-        if match:
-            versions.append(match.group(0))
-
-    if versions:
-        def version_key(version):
-            parts = version[1:].split('-')
-            numbers = list(map(int, parts[0].split('.')))
-            return numbers + [parts[1] if len(parts) > 1 else '']
-
-        sorted_versions = sorted(versions, key=version_key)
-        latest_version = sorted_versions[-1]
-        logging.info(f"Latest version: {latest_version}")
-        return latest_version
-    else:
-        return None
-
-# compare latest backend version with current backend version
-def compare_versions(version1, version2):
-    def split_version(version):
-        match = re.match(r'v?(\d+)\.(\d+)\.(\d+)(?:-(.*))?', version)
-        if match:
-            major, minor, patch, prerelease = match.groups()
-            return (int(major), int(minor), int(patch), prerelease or '')
-        return (0, 0, 0, '')
-
-    v1_parts = split_version(version1)
-    v2_parts = split_version(version2)
-
-    for v1, v2 in zip(v1_parts, v2_parts):
-        if v1 != v2:
-            return v1 > v2
-
-    return len(v1_parts) > len(v2_parts)  
-
 @app.route('/')
 def home():
     client_ip = request.remote_addr
@@ -463,24 +416,6 @@ def shutdown():
     threading.Timer(1.0, shutdown_server).start() 
     
     return response, 200 
-
-@app.get('/update-backend')
-def update_backend():
-    version = request.args.get('version')
-
-    latestVersion = get_latest_exe_url()
-
-    if latestVersion and version:
-        if compare_versions(latestVersion, version):
-            logging.info(f"Latest version: {latestVersion}")
-            logging.info(f"Current version: {version}")
-            return Response(f"Update backend to {latestVersion}", status=200)
-        else:
-            logging.warning("No update available.")
-            return Response("No update available", status=400)
-    else:
-        logging.warning("Version parameters missing.")
-        return Response("Error: No backend version found or version parameters missing", status=400)
 
 
 @app.route('/pre-install', methods=['GET'])

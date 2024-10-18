@@ -1,5 +1,5 @@
 @echo off
-python -m venv env
+py -m venv env
 
 call .\env\Scripts\activate
 
