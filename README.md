@@ -30,7 +30,6 @@ If you're a developer interested in contributing, please follow these steps:
    git clone https://github.com/bygimenez/applio-app.git
    cd apps/dekstop
    ```
-   *If you only want to collaborate on the backend, [check the appropriate repository!](https://github.com/bygimenez/applio-app-backend)*
 
 2. **Install the dependencies**:
    ```bash
