@@ -12,6 +12,7 @@ import { supabase } from "./utils/database";
 import { invoke } from "@tauri-apps/api/core";
 import { getTauriVersion, getVersion } from "@tauri-apps/api/app";
 import { open } from '@tauri-apps/plugin-shell'
+import Background1 from "./components/svg/background1";
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -104,7 +105,7 @@ function App() {
       </a>)}
       <TitleBar />
       <div className="flex w-screen h-screen gap-0">
-      {window.location.pathname !== "/first-time" && <Header />}
+      {window.location.pathname !== "/first-time" && window.location.pathname !== "/pretraineds" && <Header />}
       {loading && <div className="absolute inset-0 w-screen h-screen bg-[#111111] slow z-50">
         <span className="flex justify-center items-center m-auto h-screen">
         <svg
@@ -132,6 +133,7 @@ function App() {
         <Route path="/models" element={<Models />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/convert" element={<Convert />} />
+        <Route path="/pretraineds" element={<DownloadPretraineds />} />
       </Routes>
       </div>
     </Router>
@@ -409,6 +411,7 @@ function Settings() {
               <div className="w-full h-0.5 rounded-xl bg-white/20 mt-2 mb-4"/>
               <div className="flex gap-2">
               <a href="/first-time" type="button" className="px-3 hover:bg-white/20 slow rounded-lg border border-white/10 bg-white/10 py-1 text-sm">Install RVC</a>
+              <a href="/pretraineds" type="button" className="px-3 hover:bg-white/20 slow rounded-lg border border-white/10 bg-white/10 py-1 text-sm">Download pretraineds</a>
               <button onClick={handleTestBackend} type="button" className="px-3 hover:bg-white/20 slow rounded-lg border border-white/10 bg-white/10 py-1 text-sm">Test backend</button>
               <button onClick={checkUpdates} type="button" className="px-3 hover:bg-white/20 slow rounded-lg border border-white/10 bg-white/10 py-1 text-sm">Check updates</button>
               </div>
@@ -422,6 +425,58 @@ function Settings() {
         </div>
       </main>
     </div>
+  )
+}
+
+function DownloadPretraineds() {
+  const [status, setStatus] = useState("Starting...");
+  const [info, setInfo] = useState("Downloading...");
+
+    useEffect(() => {
+      const eventSource = new EventSource('http://localhost:5123/pretraineds');
+
+      eventSource.onmessage = (event) => {
+          console.log(event.data); 
+          setStatus(event.data);
+
+          if (event.data.includes('installed successfully')) {
+              eventSource.close();
+              setInfo('Finishing....')
+              setStatus('Installing... please wait...');
+              window.location.href = '/'
+          }
+      }
+
+      eventSource.onerror = (err) => {
+          console.log(info);
+          console.error('Error with event source:', err);
+          eventSource.close(); 
+          setStatus('');
+          setInfo('We detected an error. Please try again later.');
+      };
+
+      return () => {
+          eventSource.close(); 
+      };
+  }, []);
+
+  return (
+    <section className="absolute inset-0 z-50">
+    <div className="w-screen h-screen absolute inset-0 bg-[#111111] pointer-events-none">
+        <Background1/>
+    </div>
+    <div className="absolute inset-0 mt-auto flex z-50">
+    <div className="z-50 flex flex-col w-full justify-center items-center mx-auto">
+    <h1 className="font-bold text-4xl lg:text-5xl xl:text-6xl title">Downloading pretraineds</h1>
+    <p className="text-white/80 text-sm mt-1">We need to install some more data to complete the installation.</p>
+    <div className="flex flex-col justify-center items-center mx-auto w-full gap-2 my-4">
+    {status && (<span className="px-4 py-2 text-center w-full h-fit max-w-sm bg-[#111111]/20 backdrop-filter backdrop-blur-xl rounded-full border border-white/10 text-xs truncate shadow-2xl shadow-white/20">{status}</span>)}
+    {!info.includes('error') && (<span className="text-[10px] text-center text-neutral-300">{info}</span>)}
+    {info.includes('error') && (<span className="text-xs text-center px-4 py-1 rounded-xl bg-red-500/20 border border-white/10 text-white">{info}</span>)}
+    </div>
+    </div>
+    </div>
+</section>
   )
 }
 

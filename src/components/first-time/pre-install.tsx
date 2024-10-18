@@ -31,7 +31,7 @@ export default function PreInstall() {
             if (event.data.includes('RVC CLI has been installed successfully')) {
                 setInfo('Finishing...')
                 setStatus('Finishing RVC installation... please wait...');
-                downloadPretraineds();
+                window.location.href = '/pretraineds'
                 eventSource.close();
             }
         };
@@ -47,40 +47,7 @@ export default function PreInstall() {
         return () => {
             eventSource.close(); 
         };
-    }, []);
-
-    function downloadPretraineds() {
-        const eventSource = new EventSource('http://localhost:5123/download-pretraineds');
-    
-        eventSource.onmessage = (event) => {
-            console.log(event.data); 
-            setStatus(event.data);
-            if (event.data.includes('Downloading pretraineds...')) {
-                setInfo('Downloading pretraineds...');
-                setStatus('Downloading pretraineds... please wait...');
-            }
-            if (event.data.includes('Pretraineds installed')) {
-                setInfo('Finishing installation, please wait...');
-                setStatus('Completed');
-                eventSource.close();
-                window.location.href = '/';
-            }
-        };
-    
-        eventSource.onerror = (err) => {
-            console.log(info);
-            console.error('Error with event source:', err);
-            eventSource.close(); 
-            setStatus('');
-            setInfo('We detected an error. Please try again later.');
-        };
-    
-        return () => {
-            eventSource.close(); 
-        };
-    }
-    
-    
+    }, []);  
 
     return (
         <section className="absolute inset-0 z-50">
