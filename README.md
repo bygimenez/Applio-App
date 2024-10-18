@@ -87,8 +87,18 @@ This TurboRepo setup includes two main apps:
 
 9. **Run the desktop application**:
    ```bash
-   pnpm tauri dev --filter=desktop
+   pnpm tauri dev
    ```
+
+10. **Build the server**:
+    ```bash
+    cd apps/server
+    pyinstaller --onefile --icon=logo.ico --noconsole server.py
+    ```
+11. **Build the desktop app**:
+    ```bash
+    pnpm tauri build
+    ```
 
 ## Contributing
 
