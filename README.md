@@ -8,7 +8,7 @@
 - [x] Integrated Applio models
 - [x] Auto-Update
 - [x] Discord Presence
-- [x] Conversion (roughly)
+- [x] Conversion
 - [ ] Train
 - [ ] Translations
 
@@ -16,7 +16,7 @@
 | System      | Support Status                          |
 |-------------|-----------------------------------------|
 | Windows 11  | Full support                            |
-| Windows 10  | Partial support                         |
+| Windows 10  | Full support                        |
 | macOS       | No support, working to make it possible. |
 | Linux       | No support, working to make it possible. |
 
