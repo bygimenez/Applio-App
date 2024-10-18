@@ -5,10 +5,11 @@
 
 ## Features
 - [x] Simple integrated installation
-- [x] Integrated Applio models
-- [x] Auto-Update
+- [x] Applio models
+- [x] RVC Auto-Update
 - [x] Discord Presence
 - [x] Conversion
+- [ ] App Auto-Update
 - [ ] Train
 - [ ] Translations
 
