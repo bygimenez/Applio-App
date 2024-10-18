@@ -1,3 +1,0 @@
-[submodule "src-tauri/python"]
-	path = src-tauri/python
-	url = https://github.com/bygimenez/applio-app-backend
