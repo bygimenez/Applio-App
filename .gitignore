@@ -31,3 +31,6 @@ dist-ssr
 
 # TODO
 .todo
+
+# python
+/src-tauri/python/server.exe
