@@ -5,6 +5,9 @@
     "build": "turbo build",
     "dev": "turbo dev",
     "lint": "turbo lint",
+    "desktop": "pnpm --filter desktop --",
+    "tauri": "pnpm desktop tauri",
+    "server": "cd apps/server && env\\Scripts\\activate && python server.py",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {
