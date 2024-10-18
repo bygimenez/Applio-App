@@ -28,12 +28,13 @@ If you're a developer interested in contributing, please follow these steps:
 1. **Clone the repository**:
    ```bash
    git clone https://github.com/bygimenez/applio-app.git
+   cd apps/dekstop
    ```
    *If you only want to collaborate on the backend, [check the appropriate repository!](https://github.com/bygimenez/applio-app-backend)*
 
 2. **Install the dependencies**:
    ```bash
-   pnpm install
+   pnpm install --filter=dekstop
    ```
 
 3. **Navigate to the server folder**:
@@ -76,7 +77,7 @@ If you're a developer interested in contributing, please follow these steps:
 
 9. **Run the application**:
    ```bash
-   pnpm tauri dev
+   pnpm tauri dev --filter=dekstop
    ```
 
 ### Additional Notes
